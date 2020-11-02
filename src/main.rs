@@ -204,6 +204,8 @@ fn lex(input: &str) -> Result<Vec<Token>, LexError> {
     Ok(tokens)
 }
 
+fn main() {}
+
 #[test]
 fn test_lexer() {
     assert_eq!(
