@@ -434,8 +434,10 @@ fn main() {
         prompt("> ").unwrap();
 
         if let Some(Ok(line)) = lines.next() {
-            let token = lex(&line);
-            println!("{:?}", token);
+            let tokens = lex(&line).unwrap();
+            let ast = parse(tokens).unwrap();
+
+            println!("{:?}", ast);
         } else {
             break;
         }
