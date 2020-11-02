@@ -240,7 +240,7 @@ impl BinOp {
         Self::new(BinOpKind::Add, loc)
     }
 
-    fn minus(loc: Loc) -> Self {
+    fn sub(loc: Loc) -> Self {
         Self::new(BinOpKind::Sub, loc)
     }
 
@@ -391,7 +391,7 @@ where
             .ok_or(ParseError::Eof)
             .and_then(|tok| match tok.value {
                 TokenKind::Plus => Ok(BinOp::add(tok.loc.clone())),
-                TokenKind::Minus => Ok(BinOp::minus(tok.loc.clone())),
+                TokenKind::Minus => Ok(BinOp::sub(tok.loc.clone())),
                 _ => Err(ParseError::NotOperator(tok.clone())),
             })?;
 
@@ -456,5 +456,43 @@ fn test_lexer() {
             Token::minus(Loc(12, 13)),
             Token::number(10, Loc(13, 15)),
         ])
+    )
+}
+
+#[test]
+fn test_parser() {
+    // 1 + 2 * 3 - -10
+    let ast = parse(vec![
+        Token::number(1, Loc(0, 1)),
+        Token::plus(Loc(2, 3)),
+        Token::number(2, Loc(4, 5)),
+        Token::asterisk(Loc(6, 7)),
+        Token::number(3, Loc(8, 9)),
+        Token::minus(Loc(10, 11)),
+        Token::minus(Loc(12, 13)),
+        Token::number(10, Loc(13, 15)),
+    ]);
+    assert_eq!(
+        ast,
+        Ok(Ast::binop(
+            BinOp::sub(Loc(10, 11)),
+            Ast::binop(
+                BinOp::add(Loc(2, 3)),
+                Ast::num(1, Loc(0, 1)),
+                Ast::binop(
+                    BinOp::new(BinOpKind::Mult, Loc(6, 7)),
+                    Ast::num(2, Loc(4, 5)),
+                    Ast::num(3, Loc(8, 9)),
+                    Loc(4, 9)
+                ),
+                Loc(0, 9),
+            ),
+            Ast::uniop(
+                UniOp::minus(Loc(12, 13)),
+                Ast::num(10, Loc(13, 15)),
+                Loc(12, 15)
+            ),
+            Loc(0, 15)
+        ))
     )
 }
